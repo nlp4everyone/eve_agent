@@ -1,0 +1,1 @@
+from speech_components.speech_recognizer.whisper_speech_recognizer import FasterWhisperSpeechRecognizer, QuantizeType
