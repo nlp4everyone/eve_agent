@@ -1,0 +1,1 @@
+from config.service_params import ASSEMBLYAI_KEY

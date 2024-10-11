@@ -1,4 +1,4 @@
-from speech_components.types import BaseRecognizer
+from utils.types import AdvancedRecognizer
 from strenum import StrEnum
 from typing import Literal, List, Tuple, Union, Optional
 from faster_whisper.transcribe import TranscriptionInfo
@@ -15,7 +15,7 @@ class QuantizeType(StrEnum):
     BFLOAT16 = "bfloat16",
     FLOAT32 = "float32",
 
-class FasterWhisperSpeechRecognizer(BaseRecognizer):
+class FasterWhisperRecognizer(AdvancedRecognizer):
     def __init__(self,
                  model_name :str = "small.en",
                  device :Literal["cuda","cpu","auto"] = "auto",

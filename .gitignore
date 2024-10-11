@@ -1,0 +1,8 @@
+.idea/
+.env
+config/__pycache__/
+speech_recognizer/__pycache__/
+test.py
+test.wav
+utils/__pycache__/
+utils/types/__pycache__/
