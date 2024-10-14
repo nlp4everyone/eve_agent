@@ -1,8 +1,10 @@
 .idea/
 .env
-config/__pycache__/
-speech_recognizer/__pycache__/
 test.py
 test.wav
+__pycache__/
+config/__pycache__/
+speech_recognizer/__pycache__/
 utils/__pycache__/
 utils/types/__pycache__/
+phoneme_to_viseme/__pycache__/

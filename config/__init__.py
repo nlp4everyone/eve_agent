@@ -1,1 +1,1 @@
-from config.service_params import ASSEMBLYAI_KEY
+from speech_components.config.service_params import *

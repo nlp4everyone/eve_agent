@@ -1,8 +1,9 @@
-from utils.types import AdvancedRecognizer
-from strenum import StrEnum
+from speech_components.utils.types import AdvancedRecognizer
 from typing import Literal, List, Tuple, Union, Optional
 from faster_whisper.transcribe import TranscriptionInfo
 from faster_whisper import WhisperModel
+from strenum import StrEnum
+from pydantic import BaseModel
 import os
 
 class QuantizeType(StrEnum):
@@ -14,6 +15,11 @@ class QuantizeType(StrEnum):
     FLOAT16 = "float16",
     BFLOAT16 = "bfloat16",
     FLOAT32 = "float32",
+
+class Word(BaseModel):
+    text :str
+    start :float
+    end :int
 
 class FasterWhisperRecognizer(AdvancedRecognizer):
     def __init__(self,
@@ -97,9 +103,9 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
 
     def segment(self,
                 audio_file :str,
-                **kwargs) -> List[dict]:
+                **kwargs) -> List[Word]:
         """
-        Function with returning a list of dictionary information for words appeared in audio:
+        Returning a list of dictionary information for words appeared in audio:
         :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
         :return:
         """
@@ -109,10 +115,15 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
         segments_info = []
         # Iterate over segments
         for segment in segments:
+            # For each word loop
             for word in segment.words:
-                # For each word loop
-                temp_data = {"begin_time": word.start, "end_time": word.end, "word": word.word}
+                # Normalize second into milliseconds
+                start = int(word.start * 1000)
+                end = int(word.end * 1000)
+
+                # Define word info
+                word_info = Word(text = str(word.word), start = start, end = end)
                 # Append data to list
-                segments_info.append(temp_data)
+                segments_info.append(word_info)
         return segments_info
 

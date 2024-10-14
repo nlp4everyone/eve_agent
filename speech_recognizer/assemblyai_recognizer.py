@@ -1,7 +1,7 @@
-from utils.types import AdvancedRecognizer
+from speech_components.utils.types import AdvancedRecognizer
 from typing import Literal
+from speech_components.config import ASSEMBLYAI_KEY
 import assemblyai as aai
-from config import ASSEMBLYAI_KEY
 # Define key
 
 class AssemblyRecognizer(AdvancedRecognizer):
@@ -28,6 +28,19 @@ class AssemblyRecognizer(AdvancedRecognizer):
         transcript = self.__transcriber.transcribe(audio_file)
 
         # Return status
-        if transcript.status == aai.TranscriptStatus.error:
+        if transcript.status != aai.TranscriptStatus.completed:
             raise Exception(f"{transcript.error}")
         return transcript.text
+
+    def segment(self,audio_file :str):
+        """
+        Returning a list of dictionary information for words appeared in audio:
+        :param audio_file: Path to the input file
+        :return:
+        """
+        # Get transcription
+        transcript = self.__transcriber.transcribe(audio_file)
+        # Return status
+        if transcript.status != aai.TranscriptStatus.completed:
+            raise Exception(f"{transcript.error}")
+        print(transcript.words)

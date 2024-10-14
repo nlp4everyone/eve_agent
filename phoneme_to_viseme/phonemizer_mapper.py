@@ -1,7 +1,7 @@
 from phonemizer.backend import EspeakBackend
 from phonemizer.separator import Separator
 from typing import List, Union,Literal
-from speech_components.types import BasePhonemeMapper
+from speech_components.utils.types import BasePhonemeMapper
 import json, os
 # pyphen = pyphen.Pyphen(lang="en")
 
