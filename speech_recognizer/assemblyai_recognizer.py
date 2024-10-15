@@ -7,7 +7,14 @@ import assemblyai as aai
 class AssemblyRecognizer(AdvancedRecognizer):
     def __init__(self,
                  model :Literal["best","nano"] = "best",
-                 api_key :str = ASSEMBLYAI_KEY):
+                 api_key :str = ASSEMBLYAI_KEY,
+                 **kwargs):
+        """
+        Initialize Assembly recognizer service
+        :param model: Supported best and nano version. Best version is the most accurate and capable,
+        useful for most use case. Nano is less accurate, but lower cost models to product results.
+        :param api_key: AssemblyAI key
+        """
         super().__init__()
         # Set API key
         aai.settings.api_key = api_key
