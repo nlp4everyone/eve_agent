@@ -64,7 +64,7 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
         :return:
         """
         # Check file path
-        if not os.path.exists(audio_file): raise FileNotFoundError
+        if not self._is_existed_path(audio_file): raise FileNotFoundError
         # Return segmentation and info
         segments, info = self.__model.transcribe(audio = audio_file, word_timestamps = enable_timestamp)
         return segments, info

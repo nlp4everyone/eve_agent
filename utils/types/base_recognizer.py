@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Union
+import os
 
 class Word(BaseModel):
     text :str
@@ -30,6 +31,19 @@ class BaseRecognizer():
         assert isinstance(time, int), "Time must be in int type"
         # Return
         return float(time/1000)
+
+    @staticmethod
+    def _is_link(path :str) -> bool:
+        # Strip the path
+        path = path.strip()
+        # Lowercase
+        path = path.lower()
+        # Check condition
+        return True if path.startswith("https:") or path.startswith("http:") else False
+
+    @staticmethod
+    def _is_existed_path(path) -> bool:
+        return True if os.path.exists(path) else False
 
 class AdvancedRecognizer(BaseRecognizer):
     def __init__(self):

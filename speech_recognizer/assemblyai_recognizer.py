@@ -5,7 +5,9 @@ import assemblyai as aai
 # Define key
 
 class AssemblyRecognizer(AdvancedRecognizer):
-    def __init__(self,model :Literal["best","nano"] = "best", api_key :str = ASSEMBLYAI_KEY):
+    def __init__(self,
+                 model :Literal["best","nano"] = "best",
+                 api_key :str = ASSEMBLYAI_KEY):
         super().__init__()
         # Set API key
         aai.settings.api_key = api_key
@@ -24,6 +26,10 @@ class AssemblyRecognizer(AdvancedRecognizer):
         :param audio_file: Path to the input file
         :return:
         """
+        # Verify
+        if not self._is_existed_path(audio_file) and not self._is_link(audio_file):
+            raise FileNotFoundError
+
         # Get transcription
         transcript = self.__transcriber.transcribe(audio_file)
 
@@ -42,6 +48,10 @@ class AssemblyRecognizer(AdvancedRecognizer):
         :param in_milliseconds: Specify time under second or millisecond format.
         :return:
         """
+        # Verify
+        if not self._is_existed_path(audio_file) and not self._is_link(audio_file):
+            raise FileNotFoundError
+
         # Get transcription
         transcript = self.__transcriber.transcribe(audio_file)
         # Return status
