@@ -1,1 +1,1 @@
-from speech_components.config.service_params import *
+from .service_params import *

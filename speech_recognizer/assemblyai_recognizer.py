@@ -1,7 +1,6 @@
-from speech_components.utils.types import AdvancedRecognizer
+from ..utils.types import AdvancedRecognizer, Word
 from typing import Literal, List
-from speech_components.config import ASSEMBLYAI_KEY
-from speech_components.utils.types import Word
+from ..config import ASSEMBLYAI_KEY
 import assemblyai as aai
 # Define key
 

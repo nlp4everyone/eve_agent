@@ -1,4 +1,4 @@
-from speech_components.utils.types import AdvancedRecognizer, Word
+from ..utils.types import AdvancedRecognizer, Word
 from typing import Literal, List, Tuple, Union, Optional
 from faster_whisper.transcribe import TranscriptionInfo
 from faster_whisper import WhisperModel
