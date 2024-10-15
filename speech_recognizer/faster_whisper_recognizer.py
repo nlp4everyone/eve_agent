@@ -1,9 +1,8 @@
-from speech_components.utils.types import AdvancedRecognizer
+from speech_components.utils.types import AdvancedRecognizer, Word
 from typing import Literal, List, Tuple, Union, Optional
 from faster_whisper.transcribe import TranscriptionInfo
 from faster_whisper import WhisperModel
 from strenum import StrEnum
-from pydantic import BaseModel
 import os
 
 class QuantizeType(StrEnum):
@@ -15,11 +14,6 @@ class QuantizeType(StrEnum):
     FLOAT16 = "float16",
     BFLOAT16 = "bfloat16",
     FLOAT32 = "float32",
-
-class Word(BaseModel):
-    text :str
-    start :float
-    end :int
 
 class FasterWhisperRecognizer(AdvancedRecognizer):
     def __init__(self,
@@ -87,7 +81,8 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
         return transcription_info
 
     def transcribe(self,
-                   audio_file :str) -> str:
+                   audio_file :str,
+                   **kwargs) -> str:
         """
         Transcribe audio and then return under string
         :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
@@ -103,27 +98,27 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
 
     def segment(self,
                 audio_file :str,
+                in_milliseconds :bool = True,
                 **kwargs) -> List[Word]:
         """
         Returning a list of dictionary information for words appeared in audio:
         :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
+        :param in_milliseconds: Specify time under second or millisecond format.
         :return:
         """
         # Get pieces
         segments, _ = self._detect_segments(audio_file)
-
-        segments_info = []
-        # Iterate over segments
+        # Return list of words under millisecond type
+        output = []
         for segment in segments:
-            # For each word loop
             for word in segment.words:
-                # Normalize second into milliseconds
-                start = int(word.start * 1000)
-                end = int(word.end * 1000)
+                # Specify second or millisecond format
+                start = self._convert_to_millisecond(word.start) if in_milliseconds else word.start
+                end = self._convert_to_millisecond(word.end) if in_milliseconds else word.end
+                # Append to output
+                output.append(Word(text = word.word, start = start, end = end, probability = word.probability))
+        return output
 
-                # Define word info
-                word_info = Word(text = str(word.word), start = start, end = end)
-                # Append data to list
-                segments_info.append(word_info)
-        return segments_info
+
+
 

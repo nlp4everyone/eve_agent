@@ -1,2 +1,2 @@
-from speech_components.utils.types.base_recognizer import BaseRecognizer, AdvancedRecognizer
+from speech_components.utils.types.base_recognizer import BaseRecognizer, AdvancedRecognizer, Word
 from speech_components.utils.types.base_phoneme_mapper import BasePhonemeMapper
