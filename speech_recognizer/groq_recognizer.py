@@ -1,7 +1,8 @@
-from ..utils.types import AdvancedRecognizer, Word, BaseRecognizer
-from typing import Literal, List
+from ..utils.types import BaseRecognizer
+from typing import Literal
 from ..config import GROQ_KEY
 from groq import Groq
+import json
 
 class GroqRecognizer(BaseRecognizer):
     def __init__(self,
@@ -43,9 +44,9 @@ class GroqRecognizer(BaseRecognizer):
                 model = self.__model_name,
                 temperature = temperature  # Optional
             )
-            # Print the transcription text
         return transcription.text
 
     @property
     def model_name(self) -> str:
+        """Return model name property"""
         return self.__model_name

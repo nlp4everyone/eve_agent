@@ -6,7 +6,7 @@ class Word(BaseModel):
     text :str
     start :Union[int,float]
     end :Union[int,float]
-    probability :float
+    confidence :float
 
 class BaseRecognizer():
     def __init__(self, model = None):

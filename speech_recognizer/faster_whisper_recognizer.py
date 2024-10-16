@@ -116,7 +116,7 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
                 start = self._convert_to_millisecond(word.start) if in_milliseconds else word.start
                 end = self._convert_to_millisecond(word.end) if in_milliseconds else word.end
                 # Append to output
-                output.append(Word(text = word.word, start = start, end = end, probability = word.probability))
+                output.append(Word(text = word.word, start = start, end = end, confidence = word.probability))
         return output
 
 
