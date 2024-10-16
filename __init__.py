@@ -1,4 +1,5 @@
 from .speech_recognizer.assemblyai_recognizer import AssemblyRecognizer
 from .speech_recognizer.faster_whisper_recognizer import FasterWhisperRecognizer
 from .speech_recognizer.groq_recognizer import GroqRecognizer
+from .speech_recognizer.deepgram_recognizer import DeepGramRecognizer
 from .phoneme_to_viseme import PhonemizerMapper

@@ -1,3 +1,4 @@
 from .faster_whisper_recognizer import FasterWhisperRecognizer, QuantizeType
 from .assemblyai_recognizer import AssemblyRecognizer
 from .groq_recognizer import GroqRecognizer
+from .deepgram_recognizer import DeepGramRecognizer
