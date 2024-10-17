@@ -44,7 +44,17 @@ class ElevenLabsSynthesizer(BaseSynthesizer):
                  voice :str | Voice = DEFAULT_VOICE,
                  voice_settings: VoiceSettings | None = DEFAULT_VOICE.settings,
                  stream: bool = False,
-                 **kwargs):
+                 **kwargs) -> None:
+        """
+        Synchronously generate audio from text
+        :param text: Text for generation
+        :param file_path: Local file path of generated audio
+        :param voice: Selected voice for generation ( Default: DEFAULT_VOICE)
+        :param voice_settings: Selected voice for generation ( Default: DEFAULT_VOICE.settings)
+        :param stream: Enable stream mode or not
+        :param kwargs:
+        :return:
+        """
         # Generate audio
         audio = self.__client.generate(text = text,
                                        voice = voice,
@@ -59,7 +69,17 @@ class ElevenLabsSynthesizer(BaseSynthesizer):
                         voice :str | Voice = DEFAULT_VOICE,
                         voice_settings: VoiceSettings | None = DEFAULT_VOICE.settings,
                         stream: bool = False,
-                        **kwargs):
+                        **kwargs) -> None:
+        """
+        Asynchronously generate audio from text
+        :param text: Text for generation
+        :param file_path: Local file path of generated audio
+        :param voice: Selected voice for generation ( Default: DEFAULT_VOICE)
+        :param voice_settings: Selected voice for generation ( Default: DEFAULT_VOICE.settings)
+        :param stream: Enable stream mode or not
+        :param kwargs:
+        :return:
+        """
         # When async doesnt turn on
         assert self.__async_client, "Please enable use_async"
         # Generate audio
