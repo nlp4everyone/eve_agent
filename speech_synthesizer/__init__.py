@@ -1,1 +1,2 @@
 from .elevenlabs_synthesizer import ElevenLabsSynthesizer
+from .deepgram_synthesizer import DeepGramSynthesizer, VoiceSetting
