@@ -47,7 +47,8 @@ class DeepGramSynthesizer(BaseSynthesizer):
 
     def generate(self,
                  text :str,
-                 file_path :str) -> None:
+                 file_path :str,
+                 voice = None):
         """
         Synchronously generate audio from text
         :param text: Text for generation
