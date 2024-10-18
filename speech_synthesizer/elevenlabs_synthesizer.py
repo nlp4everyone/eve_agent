@@ -55,6 +55,10 @@ class ElevenLabsSynthesizer(BaseSynthesizer):
         :param kwargs:
         :return:
         """
+        # Check file path
+        if not self._is_audio_path(file_path=file_path):
+            raise TypeError(f"Wrong audio format! File path must be end with ({','.join(self._audio_extension)})")
+
         # Generate audio
         audio = self.__client.generate(text = text,
                                        voice = voice,
@@ -80,6 +84,10 @@ class ElevenLabsSynthesizer(BaseSynthesizer):
         :param kwargs:
         :return:
         """
+        # Check file path
+        if not self._is_audio_path(file_path=file_path):
+            raise TypeError(f"Wrong audio format! File path must be end with ({','.join(self._audio_extension)})")
+
         # When async doesnt turn on
         assert self.__async_client, "Please enable use_async"
         # Generate audio

@@ -55,6 +55,10 @@ class DeepGramSynthesizer(BaseSynthesizer):
         :param file_path: Local file path of generated audio
         :return:
         """
+        # Check file path
+        if not self._is_audio_path(file_path = file_path):
+            raise TypeError(f"Wrong audio format! File path must be end with ({','.join(self._audio_extension)})")
+
         # Define text
         speak_options = {"text": text}
         # Get response

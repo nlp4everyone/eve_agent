@@ -125,6 +125,10 @@ class LmntSynthesizer(BaseSynthesizer):
         :param kwargs:
         :return:
         """
+        # Check file path
+        if not self._is_audio_path(file_path=file_path):
+            raise TypeError(f"Wrong audio format! File path must be end with ({','.join(self._audio_extension)})")
+
         # Check voice exited
         try:
             await self.voice_info(voice_id = voice)
