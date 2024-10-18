@@ -4,6 +4,7 @@ deepgram_sdk==3.7.3
 elevenlabs==1.10.0
 faster_whisper==1.0.3
 groq==0.11.0
+gTTS==2.5.3
 httpx==0.27.2
 lmnt==1.1.4
 phonemizer==3.3.0

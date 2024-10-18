@@ -13,6 +13,17 @@ class BaseSynthesizer():
         # Return True or False
         return True if extension.lower() in audio_extension else False
 
+    def _check_generation_condition(self,
+                                    text :str,
+                                    file_path) -> bool:
+        # Check text
+        assert text, "Text cant be empty"
+
+        # Check file path
+        if not self._is_audio_path(file_path=file_path):
+            raise TypeError(f"Wrong audio format! File path must be end with ({','.join(self._audio_extension)})")
+        return True
+
     def generate(self,
                  text :str,
                  file_path :str,

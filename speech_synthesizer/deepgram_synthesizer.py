@@ -22,7 +22,6 @@ class VoiceSetting(StrEnum):
 
 class DeepGramSynthesizer(BaseSynthesizer):
     def __init__(self,
-                 model :Union[VoiceSetting,str] = VoiceSetting.ASTERIA_FEMALE,
                  api_key :str = DEEPGRAM_KEY,
                  encoding :Union[str,DeepGramEncoding] = DeepGramEncoding.LINEAR16,
                  **kwargs):
@@ -33,31 +32,31 @@ class DeepGramSynthesizer(BaseSynthesizer):
         :param api_key: DeepGram key
         """
         super().__init__()
-        # Set model name
-        self.__model_name = model
+        self._encoding = encoding
         # Set API key
         self.__client = DeepgramClient(api_key)
-
-        # Define option
-        self.__options = SpeakOptions(
-            model = self.__model_name,
-            encoding = encoding,
-            container = "wav"
-        )
 
     def generate(self,
                  text :str,
                  file_path :str,
-                 voice = None):
+                 voice :Union[VoiceSetting,str] = VoiceSetting.ASTERIA_FEMALE,
+                 **kwargs):
         """
         Synchronously generate audio from text
         :param text: Text for generation
         :param file_path: Local file path of generated audio
         :return:
         """
-        # Check file path
-        if not self._is_audio_path(file_path = file_path):
-            raise TypeError(f"Wrong audio format! File path must be end with ({','.join(self._audio_extension)})")
+        # Check generation condition
+        self._check_generation_condition(text = text,
+                                         file_path = file_path)
+
+        # Define option
+        self.__options = SpeakOptions(
+            model = voice,
+            encoding = self._encoding,
+            container = "wav"
+        )
 
         # Define text
         speak_options = {"text": text}

@@ -1,3 +1,4 @@
 from .elevenlabs_synthesizer import ElevenLabsSynthesizer
 from .deepgram_synthesizer import DeepGramSynthesizer, VoiceSetting
 from .lmnt_synthesizer import LmntSynthesizer
+from .gtts_synthesizer import GoogleTTSSynthesizer

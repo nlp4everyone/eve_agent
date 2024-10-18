@@ -7,6 +7,10 @@ import os
 class LmntSynthesizer(BaseSynthesizer):
     def __init__(self,
                  api_key: str = LMNT_KEY):
+        """
+        Initialize LMNT Synthesizer service.
+        :param api_key: LMNT Key
+        """
         super().__init__()
         # Define key
         self.__api_key = api_key
@@ -125,9 +129,9 @@ class LmntSynthesizer(BaseSynthesizer):
         :param kwargs:
         :return:
         """
-        # Check file path
-        if not self._is_audio_path(file_path=file_path):
-            raise TypeError(f"Wrong audio format! File path must be end with ({','.join(self._audio_extension)})")
+        # Check generation condition
+        self._check_generation_condition(text = text,
+                                         file_path = file_path)
 
         # Check voice exited
         try:
