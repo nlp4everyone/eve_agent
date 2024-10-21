@@ -1,9 +1,9 @@
-from elevenlabs.client import ElevenLabs, AsyncElevenLabs, DEFAULT_VOICE
 from ..utils.types import BaseSynthesizer
-from ..config import ELEVEN_API_KEY
 from typing import Optional, List, Literal
+from elevenlabs.client import ElevenLabs, AsyncElevenLabs, DEFAULT_VOICE
 from elevenlabs import save
 from elevenlabs.types import Voice, VoiceSettings
+from ..config import ELEVEN_API_KEY
 import httpx
 
 class ElevenLabsSynthesizer(BaseSynthesizer):
@@ -18,6 +18,7 @@ class ElevenLabsSynthesizer(BaseSynthesizer):
         eleven_multilingual_v2 supported 29 different languages. eleven_monolingual_v1 only supported English speech.
         For more information (https://github.com/elevenlabs/elevenlabs-python)
         :param api_key: Eleven Labs API Key (Required)
+        :param use_async: Enable async mode (Default :False)
         :param timeout: Timeout in float type
         """
         super().__init__()
@@ -40,24 +41,24 @@ class ElevenLabsSynthesizer(BaseSynthesizer):
 
     def generate(self,
                  text :str,
-                 file_path :str,
+                 generated_path :str,
                  voice :str | Voice = DEFAULT_VOICE,
                  voice_settings: VoiceSettings | None = DEFAULT_VOICE.settings,
                  stream: bool = False,
                  **kwargs) -> None:
         """
-        Synchronously generate audio from text
+        Synchronously generate synthesis audio
         :param text: Text for generation
-        :param file_path: Local file path of generated audio
+        :param generated_path: Local file path of generated audio
         :param voice: Selected voice for generation ( Default: DEFAULT_VOICE)
         :param voice_settings: Selected voice for generation ( Default: DEFAULT_VOICE.settings)
         :param stream: Enable stream mode or not
         :param kwargs:
-        :return:
+        :return: None
         """
         # Check generation condition
         self._check_generation_condition(text = text,
-                                         file_path = file_path)
+                                         file_path = generated_path)
 
         # Generate audio
         audio = self.__client.generate(text = text,
@@ -65,39 +66,39 @@ class ElevenLabsSynthesizer(BaseSynthesizer):
                                        voice_settings = voice_settings,
                                        stream = stream)
         # Save audio
-        save(audio = audio, filename = file_path)
+        save(audio = audio, filename = generated_path)
 
     async def agenerate(self,
                         text :str,
-                        file_path :str,
+                        generated_path :str,
                         voice :str | Voice = DEFAULT_VOICE,
                         voice_settings: VoiceSettings | None = DEFAULT_VOICE.settings,
                         stream: bool = False,
                         **kwargs) -> None:
         """
-        Asynchronously generate audio from text
+        Asynchronously generate synthesis audio
         :param text: Text for generation
-        :param file_path: Local file path of generated audio
+        :param generated_path: Local file path of generated audio
         :param voice: Selected voice for generation ( Default: DEFAULT_VOICE)
         :param voice_settings: Selected voice for generation ( Default: DEFAULT_VOICE.settings)
         :param stream: Enable stream mode or not
         :param kwargs:
-        :return:
+        :return: None
         """
         # Check generation condition
         self._check_generation_condition(text = text,
-                                         file_path = file_path)
+                                         file_path = generated_path)
 
         # When async doesnt turn on
         assert self.__async_client, "Please enable use_async"
         # Generate audio
-        audio = await self.__async_client.generate(text=text,
-                                                   voice=voice,
-                                                   voice_settings=voice_settings,
-                                                   stream=stream)
+        audio = await self.__async_client.generate(text = text,
+                                                   voice = voice,
+                                                   voice_settings = voice_settings,
+                                                   stream = stream)
         # Add bytes
         out = b''
         async for value in audio:
             out += value
         # Save audio
-        save(audio = out, filename=file_path)
+        save(audio = out, filename = generated_path)

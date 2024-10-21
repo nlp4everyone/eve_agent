@@ -1,6 +1,5 @@
 aiofiles==24.1.0
 assemblyai==0.34.0
-deepgram_sdk==3.7.0
 elevenlabs==1.10.0
 faster_whisper==1.0.3
 groq==0.11.0
@@ -12,3 +11,6 @@ pydantic==2.9.2
 python-dotenv==1.0.1
 regex==2024.9.11
 StrEnum==0.4.15
+torch==2.2.0
+torchaudio==2.2.0
+TTS==0.20.5

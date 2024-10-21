@@ -26,7 +26,7 @@ class BaseSynthesizer():
 
     def generate(self,
                  text :str,
-                 file_path :str,
+                 generated_path :str,
                  voice = None):
         """Synchronous function to synthesize a voice from define accent"""
         raise NotImplementedError

@@ -1,10 +1,10 @@
 from ..utils.types import BaseSynthesizer
-from ..utils.encoding import DeepGramEncoding
-from ..config import DEEPGRAM_KEY
 from typing import Union
+from ..utils.encoding import DeepGramEncoding
 from strenum import StrEnum
 from deepgram import (DeepgramClient,
                       SpeakOptions)
+from ..config import DEEPGRAM_KEY
 
 class VoiceSetting(StrEnum):
     ASTERIA_FEMALE = "aura-asteria-en"
@@ -38,18 +38,18 @@ class DeepGramSynthesizer(BaseSynthesizer):
 
     def generate(self,
                  text :str,
-                 file_path :str,
+                 generated_path :str,
                  voice :Union[VoiceSetting,str] = VoiceSetting.ASTERIA_FEMALE,
                  **kwargs):
         """
-        Synchronously generate audio from text
+        Synchronously generate synthesis audui
         :param text: Text for generation
-        :param file_path: Local file path of generated audio
+        :param generated_path: Local file path of generated audio
         :return:
         """
         # Check generation condition
         self._check_generation_condition(text = text,
-                                         file_path = file_path)
+                                         file_path = generated_path)
 
         # Define option
         self.__options = SpeakOptions(
@@ -61,6 +61,6 @@ class DeepGramSynthesizer(BaseSynthesizer):
         # Define text
         speak_options = {"text": text}
         # Get response
-        response = self.__client.speak.v("1").save(filename = file_path,
+        response = self.__client.speak.v("1").save(filename = generated_path,
                                                    source = speak_options,
                                                    options = self.__options)

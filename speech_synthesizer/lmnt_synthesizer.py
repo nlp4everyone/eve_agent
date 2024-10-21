@@ -1,7 +1,7 @@
-from lmnt.api import Speech
 from ..utils.types import BaseSynthesizer
+from typing import List, Literal, Optional,Dict
 from ..config import LMNT_KEY
-from typing import List, Literal, Optional
+from lmnt.api import Speech
 import os
 
 class LmntSynthesizer(BaseSynthesizer):
@@ -26,7 +26,7 @@ class LmntSynthesizer(BaseSynthesizer):
             return await speech.list_voices(owner = owner)
 
     async def voice_info(self,
-                         voice_id :str):
+                         voice_id :str) -> Dict[str,str]:
         """
         Returns details of a specific voice.
         :param voice_id: The id of the voice to update. If you don’t know the id, you can get it from list_voices()
@@ -37,15 +37,15 @@ class LmntSynthesizer(BaseSynthesizer):
 
     async def create_voice(self,
                            name :str,
-                           file_name :List[str],
+                           reference_voice :List[str],
                            enhance: bool = True,
                            type :Literal['instant','professional'] = 'instant',
                            gender :Literal["male","female","nonbinary"]|None = None,
-                           description :Optional[str] = None):
+                           description :Optional[str] = None) -> None:
         """
         Creates a new voice from a set of audio files. Returns the voice metadata object.
         :param name: The name of the voice.
-        :param file_name: A list of filenames to use for the voice.
+        :param reference_voice: A list of filenames to use for the voice.
         :param enhance: For unclean audio with background noise, applies processing to attempt to improve quality.
         Not on by default as it can also degrade quality in some circumstances (Default: True)
         :param type: The type of voice to create. Must be one of instant or professional (Default: instant).
@@ -55,10 +55,11 @@ class LmntSynthesizer(BaseSynthesizer):
         """
 
         # When empty
-        if len(file_name) == 0:
+        if len(reference_voice) == 0:
             raise FileNotFoundError
+
         # Check file path existed
-        path_existed = [os.path.exists(file_path) for file_path in file_name]
+        path_existed = [os.path.exists(file_path) for file_path in reference_voice]
         # If path not existed
         if path_existed.count(True) < len(path_existed):
             raise Exception("Some path not existed!")
@@ -67,7 +68,7 @@ class LmntSynthesizer(BaseSynthesizer):
         async with Speech(self.__api_key) as speech:
             voice = await speech.create_voice(name = name,
                                               enhance = enhance,
-                                              filenames = file_name,
+                                              filenames = reference_voice,
                                               type = type,
                                               gender = gender,
                                               description = description)
@@ -77,7 +78,7 @@ class LmntSynthesizer(BaseSynthesizer):
                            name :str,
                            starred :bool = False,
                            gender :Literal["male","female","nonbinary"]|None = None,
-                           description :Optional[str] = None):
+                           description :Optional[str] = None) -> None:
         """
         Updates metadata for a specific voice. A voice that is not owned by you can only have its starred field updated.
         Only provided fields will be changed.
@@ -108,7 +109,7 @@ class LmntSynthesizer(BaseSynthesizer):
 
     async def agenerate(self,
                         text :str,
-                        file_path :str,
+                        generated_path :str,
                         voice :str = "ava",
                         format :Literal["acc","mp3","wav"] = "mp3",
                         language :Literal["de","en","es","fr","pt","zh"] = "en",
@@ -116,9 +117,9 @@ class LmntSynthesizer(BaseSynthesizer):
                         speed :float = 1.0,
                         **kwargs) -> None:
         """
-        Asynchronously generate audio from text
+        Asynchronously generate synthesis audio
         :param text: Text for generation
-        :param file_path: Local file path of generated audio
+        :param generated_path: Local file path of generated audio
         :param voice: Which voice to render, id is found using the list_voices call
         :param format: aac, mp3, wav. Defaults to mp3 (24kHz 16-bit mono).
         :param language: The desired language of the synthesized speech. Two letter ISO 639-1 code.
@@ -131,7 +132,7 @@ class LmntSynthesizer(BaseSynthesizer):
         """
         # Check generation condition
         self._check_generation_condition(text = text,
-                                         file_path = file_path)
+                                         file_path = generated_path)
 
         # Check voice exited
         try:
@@ -141,7 +142,7 @@ class LmntSynthesizer(BaseSynthesizer):
 
         # Validate speed infor
         if speed < 0.25 or speed > 2.0:
-            raise ValueError("Speed value must be in range from 0.25 to 1.0")
+            raise ValueError("Speed value must be in range from 0.25 to 2.0")
 
         # Synthesize audio
         async with Speech(self.__api_key) as speech:
@@ -152,12 +153,12 @@ class LmntSynthesizer(BaseSynthesizer):
                                                 sample_rate = sample_rate,
                                                 speed = speed)
         # Save audio file
-        with open(file_path, 'wb') as f:
+        with open(generated_path, 'wb') as f:
             f.write(synthesis['audio'])
 
     async def aclone(self,
                      text: str,
-                     file_path: str,
+                     generated_path: str,
                      voice_id: str,
                      format: Literal["acc", "mp3", "wav"] = "mp3",
                      language: Literal["de", "en", "es", "fr", "pt", "zh"] = "en",
@@ -167,7 +168,7 @@ class LmntSynthesizer(BaseSynthesizer):
         """
         Asynchronously clone voice from specified id
         :param text: Text for generation
-        :param file_path: Local file path of generated audio
+        :param generated_path: Local file path of generated audio
         :param voice_id: Which voice to clone. If not existed, create voice.
         :param format: aac, mp3, wav. Defaults to mp3 (24kHz 16-bit mono).
         :param language: The desired language of the synthesized speech. Two letter ISO 639-1 code.
@@ -191,9 +192,9 @@ class LmntSynthesizer(BaseSynthesizer):
             print(user_voices)
             raise Exception(f"Voice: {voice_id} not existed! Please create_voice first")
 
-        # Generate
+        # Generate synthesis voice
         await self.agenerate(text = text,
-                             file_path = file_path,
+                             generated_path = generated_path,
                              voice = voice_id,
                              format = format,
                              language = language,
