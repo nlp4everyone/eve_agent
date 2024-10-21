@@ -42,7 +42,7 @@ class DeepGramSynthesizer(BaseSynthesizer):
                  voice :Union[VoiceSetting,str] = VoiceSetting.ASTERIA_FEMALE,
                  **kwargs):
         """
-        Synchronously generate synthesis audui
+        Synchronously generate synthesis audio
         :param text: Text for generation
         :param generated_path: Local file path of generated audio
         :return:

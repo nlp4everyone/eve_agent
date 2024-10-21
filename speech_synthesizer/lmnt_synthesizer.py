@@ -175,7 +175,7 @@ class LmntSynthesizer(BaseSynthesizer):
         One of de, en, es, fr, pt, zh.
         :param sample_rate: The desired output sample rate in Hz, one of: 8000, 16000, 24000.
         Defaults to 24000 for all formats except mulaw which defaults to 8000.
-        :param speed: Floating point value between 0.25 (slow) and 2.0 (fast).
+        :param speed: Describe how fast of speech is. Floating point value between 0.25 (slow) and 2.0 (fast).
         :param kwargs:
         :return: None
         """
