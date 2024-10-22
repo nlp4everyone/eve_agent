@@ -30,9 +30,9 @@ class AssemblyRecognizer(AdvancedRecognizer):
                    audio_file :str,
                    **kwargs) -> str:
         """
-        Transcribe audio into string
+        Synchronous function to return transcription from audio
         :param audio_file: Path to the input file or url
-        :return:
+        :return: str
         """
         # Verify
         if not self._is_existed_path(audio_file) and not self._is_link(audio_file):
@@ -54,7 +54,7 @@ class AssemblyRecognizer(AdvancedRecognizer):
         Returning a list of dictionary information for words appeared in audio:
         :param audio_file: Path to the input file
         :param in_milliseconds: Specify time under second or millisecond format.
-        :return:
+        :return: List[Word]
         """
         # Verify
         if not self._is_existed_path(audio_file) and not self._is_link(audio_file):

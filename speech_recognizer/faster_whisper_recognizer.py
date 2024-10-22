@@ -61,7 +61,7 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
         :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
         :param enable_timestamp: Extract word-level timestamps using the cross-attention pattern and dynamic time warping,
         and include the timestamps for each word in each segment.
-        :return:
+        :return: Tuple
         """
         # Check file path
         if not self._is_existed_path(audio_file): raise FileNotFoundError
@@ -74,7 +74,7 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
         """
         Return information about transcription
         :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
-        :return:
+        :return: TranscriptionInfo
         """
         # Get pieces
         _, transcription_info = self._detect_segments(audio_file)
@@ -84,9 +84,9 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
                    audio_file :str,
                    **kwargs) -> str:
         """
-        Transcribe audio and then return under string
+        Synchronous function to return transcription from audio
         :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
-        :return:
+        :return: str
         """
         # Get pieces
         segments, _ = self._detect_segments(audio_file)
@@ -104,7 +104,7 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
         Returning a list of dictionary information for words appeared in audio:
         :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
         :param in_milliseconds: Specify time under second or millisecond format.
-        :return:
+        :return: List[Word]
         """
         # Get pieces
         segments, _ = self._detect_segments(audio_file)

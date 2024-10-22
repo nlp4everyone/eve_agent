@@ -266,4 +266,5 @@ class DeepGramRecognizer(AdvancedRecognizer):
 
     @property
     def model_name(self) -> str:
+        """Return model name property"""
         return self.__model_name
