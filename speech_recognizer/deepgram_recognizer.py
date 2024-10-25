@@ -1,12 +1,13 @@
-from ..utils.types import AdvancedRecognizer,Word
-from typing import Union, Literal, Optional, Tuple, List
+from ..utils.types import BaseRecognizer, Word, AudioType, StatusCode, RecognizerResponse
+from typing import Union, Literal, Optional, List, BinaryIO
 from ..config import DEEPGRAM_KEY
 from deepgram import (DeepgramClient,
                       PrerecordedOptions,
-                      FileSource)
+                      FileSource,
+                      BufferSource)
 import httpx, aiofiles
 
-class DeepGramRecognizer(AdvancedRecognizer):
+class DeepGramRecognizer(BaseRecognizer):
     def __init__(self,
                  model :Union[Literal["nova-2","nova-2-general"],str] = "nova-2",
                  api_key :str = DEEPGRAM_KEY,
@@ -28,6 +29,11 @@ class DeepGramRecognizer(AdvancedRecognizer):
             model = self.__model_name,
             smart_format = True,
         )
+
+    @property
+    def model_name(self) -> str:
+        """Return model name property"""
+        return self.__model_name
 
     def __contruct_segments(self,
                             segments :List,
@@ -53,218 +59,194 @@ class DeepGramRecognizer(AdvancedRecognizer):
         # Return segments
         return output
 
-    def _detect_segments(self,
-                         audio_file: str,
-                         timeout: Optional[float] = None,
-                         connect_time: float = 5,
-                         in_milliseconds: bool = True,
-                         detect_words :bool = True,
-                         **kwargs) -> Tuple[str|None,List[Word]|None]:
-        """
-        Synchronous function to detect information ( including word, start, end and confident) each word.
-        :param audio_file: Path/URL to the input file
-        :param timeout: Timeout in second (Default :None)
-        :param connect_time: Connect time in second
-        :param in_milliseconds: Whether return time under second or millisecond type
-        :param detect_words: Enable return list of segmented words.
-        :param kwargs:
-        :return: Tuple[str|None,List[Word]|None]
-        """
-        # Verify
-        if not self._is_existed_path(audio_file) and not self._is_link(audio_file):
-            raise FileNotFoundError
-
-        # Define timeout
-        if timeout != None:
-            timeout = httpx.Timeout(timeout = timeout, connect = connect_time)
-
-        # Detect segment from file
-        try:
-            # With Local file
-            if self._is_existed_path(audio_file):
-                # Read buffer
-                with open(audio_file, "rb") as file:
-                    buffer_data = file.read()
-                # Create payload
-                payload: FileSource = {
-                    "buffer": buffer_data,
-                }
-                # Return response from prerecorded file
-                response = self.__client.listen.rest.v("1").transcribe_file(source=payload,
-                                                                            options=self.__options,
-                                                                            timeout = timeout)
-            else:
-                # Return response from url
-                response = self.__client.listen.rest.v("1").transcribe_url(source=audio_file,
-                                                                           options=self.__options,
-                                                                           timeout = timeout)
-
-            # Get info
-            info = response["results"]["channels"][0]["alternatives"][0]
-            # Define transcript
-            transcript = str(info["transcript"])
-
-            # When only detect transcription
-            if not detect_words:
-                return transcript, None
-
-            # Return both transcript and segments
-            segments = self.__contruct_segments(segments = info['words'],
-                                                in_milliseconds = in_milliseconds)
-            return transcript, segments
-        except:
-            return None, None
-
-    async def _adetect_segments(self,
-                                audio_file: str,
-                                timeout: Optional[float] = None,
-                                connect_time: float = 5,
-                                in_milliseconds: bool = True,
-                                detect_words :bool = True,
-                                **kwargs) -> Tuple[str|None,List[Word]|None]:
-        """
-        Asynchronous function to detect information ( including word, start, end and confident) each word.
-        :param audio_file: Path/URL to the input file
-        :param timeout: Timeout in second (Default :None)
-        :param connect_time: Connect time in second
-        :param in_milliseconds: Whether return time under second or millisecond type
-        :param detect_words: Enable return list of segmented words.
-        :param kwargs:
-        :return: Tuple[str|None,List[Word]|None]
-        """
-        # Verify
-        if not self._is_existed_path(audio_file) and not self._is_link(audio_file):
-            raise FileNotFoundError
-
-        # Define timeout
-        if timeout != None:
-            timeout = httpx.Timeout(timeout = timeout, connect = connect_time)
-        # Detect segment from file
-        try:
-            # With Local file
-            if self._is_existed_path(audio_file):
-                # Read buffer
-                async with aiofiles.open(audio_file, "rb") as audio:
-                    buffer_data = await audio.read()
-
-                # Create payload
-                payload: FileSource = {
-                    "buffer": buffer_data,
-                }
-
-                # Return response from prerecorded file
-                response = await self.__client.listen.asyncrest.v("1").transcribe_file(source = payload,
-                                                                                       options = self.__options,
-                                                                                       timeout = timeout)
-            else:
-                # Return response from url
-                response = await self.__client.listen.asyncrest.v("1").transcribe_url(source = audio_file,
-                                                                                      options = self.__options,
-                                                                                      timeout = timeout)
-            # Get info
-            info = response["results"]["channels"][0]["alternatives"][0]
-            # Define transcript
-            transcript = str(info["transcript"])
-
-            # When only detect transcription
-            if not detect_words:
-                return transcript, None
-
-            # Return both transcript and segments
-            segments = self.__contruct_segments(segments = info['words'],
-                                                in_milliseconds = in_milliseconds)
-            return transcript, segments
-
-        except:
-            return None, None
-
     def transcribe(self,
-                   audio_file :str,
-                   timeout :Optional[float] = None,
-                   connect_time :float = 5,
-                   **kwargs) -> str:
+                   audio: Union[str, BinaryIO,bytes],
+                   timeout: Optional[float] = None,
+                   connect_time: float = 5,
+                   in_milliseconds: bool = True,
+                   detect_words :bool = True,
+                   **kwargs) -> RecognizerResponse:
         """
         Synchronous function to return transcription from audio
-        :param audio_file: Path/URL to the input file
+        :param audio: Audio object ( Accepted types: str (file path), bytes and BinaryIO).
         :param timeout: Timeout in second (Default :None)
         :param connect_time: Connect time in second
+        :param in_milliseconds: Whether return time under second or millisecond type
+        :param detect_words: Enable return list of segmented words.
         :param kwargs:
-        :return: str
+        :return: RecognizerResponse
         """
-        # Get transcription
-        transcription, _ = self._detect_segments(audio_file = audio_file,
-                                                 timeout = timeout,
-                                                 connect_time = connect_time,
-                                                 detect_words = False)
-        return transcription
+        # Define timeout
+        if timeout != None:
+            timeout = httpx.Timeout(timeout=timeout, connect=connect_time)
+
+        # Get AudioType from audio input
+        audio_type = self.get_audio_type(audio)
+
+        # Default response
+        response = None
+        status_code = StatusCode.SUCCESS
+
+        # Switch case
+        match audio_type:
+            case AudioType.LINK:
+                # Audio Link case
+                try:
+                    # Return response from url
+                    response = self.__client.listen.rest.v("1").transcribe_url(source = audio,
+                                                                               options = self.__options,
+                                                                               timeout = timeout)
+                except Exception as e:
+                    # Failed status
+                    status_code = StatusCode.FAILED
+
+            case AudioType.LOCAL_FILE:
+                # Local file case
+                if not self._is_existed_path(audio):
+                    raise FileNotFoundError(f"Local path: {audio} not found")
+
+                try:
+                    # Read file as buffer
+                    with open(audio, "rb") as file:
+                        buffer_data = file.read()
+                    # Create payload
+                    payload: FileSource = {
+                        "buffer": buffer_data,
+                    }
+                    # Return response from prerecorded file
+                    response = self.__client.listen.rest.v("1").transcribe_file(source = payload,
+                                                                                options = self.__options,
+                                                                                timeout = timeout)
+                except Exception as e:
+                    # Failed status
+                    status_code = StatusCode.FAILED
+
+            case AudioType.BYTES:
+                # Audio Bytes case
+                try:
+                    # Create payload
+                    payload: BufferSource = {
+                        "buffer": bytes(audio),
+                    }
+                    # Return response from url
+                    response = self.__client.listen.rest.v("1").transcribe_file(source = payload,
+                                                                                options = self.__options,
+                                                                                timeout = timeout)
+                except Exception as e:
+                    # Failed status
+                    status_code = StatusCode.FAILED
+
+        # Doesnt response
+        if response == None:
+            return RecognizerResponse(status_code = status_code)
+
+        # Get info
+        info = response["results"]["channels"][0]["alternatives"][0]
+        segments = None
+        # When detect segment
+        if detect_words:
+            segments = self.__contruct_segments(segments = info['words'],
+                                                in_milliseconds = in_milliseconds)
+
+        # Return
+        return RecognizerResponse(status_code = status_code,
+                                  transcription = str(info["transcript"]),
+                                  segments = segments)
 
     async def atranscribe(self,
-                          audio_file :str,
-                          timeout :Optional[float] = None,
-                          connect_time :float = 5,
-                          **kwargs) -> str:
+                          audio: Union[str, BinaryIO, bytes],
+                          timeout: Optional[float] = None,
+                          connect_time: float = 5,
+                          in_milliseconds: bool = True,
+                          detect_words: bool = True,
+                          **kwargs) -> RecognizerResponse:
         """
         Asynchronous function to return transcription from audio
-        :param audio_file: Path/URL to the input file
+        :param audio: Audio object ( Accepted types: str (file path), bytes and BinaryIO).
         :param timeout: Timeout in second (Default :None)
         :param connect_time: Connect time in second
-        :param kwargs:
-        :return: str
-        """
-        # Get transcription
-        transcription,_ = await self._adetect_segments(audio_file = audio_file,
-                                                        timeout = timeout,
-                                                        connect_time = connect_time,
-                                                        detect_words = False)
-        return transcription
-
-    def segment(self,
-                audio_file :str,
-                in_milliseconds :bool = True,
-                timeout: Optional[float] = None,
-                connect_time: float = 5,
-                **kwargs) -> List[Word]:
-        """
-        Synchronous function to return segmented words from audio
-        :param audio_file: Path/URL to the input file
         :param in_milliseconds: Whether return time under second or millisecond type
-        :param timeout: Timeout in second (Default :None)
-        :param connect_time: Connect time in second
+        :param detect_words: Enable return list of segmented words.
         :param kwargs:
-        :return: List[Word]
+        :return: RecognizerResponse
         """
-        # Get segments
-        _, segments = self._detect_segments(audio_file = audio_file,
-                                            timeout = timeout,
-                                            connect_time = connect_time,
-                                            detect_words = True,
-                                            in_milliseconds = in_milliseconds)
-        return segments
+        # Define timeout
+        if timeout != None:
+            timeout = httpx.Timeout(timeout=timeout, connect=connect_time)
 
-    async def asegment(self,
-                       audio_file :str,
-                       in_milliseconds :bool = True,
-                       timeout: Optional[float] = None,
-                       connect_time: float = 5,
-                       **kwargs) -> List[Word]:
-        """
-        Asynchronous function to return segmented words from audio
-        :param audio_file: Path/URL to the input file
-        :param in_milliseconds: Whether return time under second or millisecond type
-        :param timeout: Timeout in second (Default :None)
-        :param connect_time: Connect time in second
-        :param kwargs:
-        :return: List[Word]
-        """
-        # Get segments
-        _, segments = await self._adetect_segments(audio_file = audio_file,
-                                                   timeout = timeout,
-                                                   connect_time = connect_time,
-                                                   detect_words = True,
-                                                   in_milliseconds = in_milliseconds)
-        return segments
+        # Get AudioType from audio input
+        audio_type = self.get_audio_type(audio)
 
-    @property
-    def model_name(self) -> str:
-        """Return model name property"""
-        return self.__model_name
+        # Default response
+        response = None
+        status_code = StatusCode.SUCCESS
+
+        # Switch case
+        match audio_type:
+            case AudioType.LINK:
+                # Audio Link case
+                try:
+                    # Return response from url
+                    response = await self.__client.listen.asyncrest.v("1").transcribe_url(source = audio,
+                                                                                          options = self.__options,
+                                                                                          timeout = timeout)
+                except Exception as e:
+                    # Failed status
+                    status_code = StatusCode.FAILED
+
+            case AudioType.LOCAL_FILE:
+                # Local file case
+                if not self._is_existed_path(audio):
+                    raise FileNotFoundError(f"Local path: {audio} not found")
+
+                try:
+                    # Read buffer
+                    async with aiofiles.open(audio, "rb") as audio:
+                        buffer_data = await audio.read()
+
+                    # Create payload
+                    payload: FileSource = {
+                        "buffer": buffer_data,
+                    }
+                    # Return response from prerecorded file
+                    response = await self.__client.listen.asyncrest.v("1").transcribe_file(source = payload,
+                                                                                           options = self.__options,
+                                                                                           timeout = timeout)
+                except Exception as e:
+                    # Failed status
+                    status_code = StatusCode.FAILED
+
+            case AudioType.BYTES:
+                # Audio Bytes case
+                try:
+                    # Create payload
+                    payload: BufferSource = {
+                        "buffer": bytes(audio),
+                    }
+                    # Return response from bytes
+                    response = await self.__client.listen.asyncrest.v("1").transcribe_file(source = payload,
+                                                                                           options = self.__options,
+                                                                                           timeout = timeout)
+
+                except Exception as e:
+                    # Failed status
+                    status_code = StatusCode.FAILED
+
+        # Doesnt response
+        if response == None:
+            return RecognizerResponse(status_code=status_code)
+
+        # Get info
+        info = response["results"]["channels"][0]["alternatives"][0]
+
+        segments = None
+        # When detect segment
+        if detect_words:
+            segments = self.__contruct_segments(segments = info['words'],
+                                                in_milliseconds = in_milliseconds)
+
+        # Return
+        return RecognizerResponse(status_code = status_code,
+                                  transcription = str(info["transcript"]),
+                                  segments = segments)
+
