@@ -1,4 +1,4 @@
-from ..utils.types import BaseRecognizer, Word, AudioType, StatusCode, RecognizerResponse
+from ..utils.types import BaseRecognizer, Word, AudioType, StatusCode, TranscriptionResponse
 from typing import Union, Literal, Optional, List, BinaryIO
 from ..config import DEEPGRAM_KEY
 from deepgram import (DeepgramClient,
@@ -64,8 +64,8 @@ class DeepGramRecognizer(BaseRecognizer):
                    timeout: Optional[float] = None,
                    connect_time: float = 5,
                    in_milliseconds: bool = True,
-                   detect_words :bool = True,
-                   **kwargs) -> RecognizerResponse:
+                   detect_words :bool = False,
+                   **kwargs) -> TranscriptionResponse:
         """
         Synchronous function to return transcription from audio
         :param audio: Audio object ( Accepted types: str (file path), bytes and BinaryIO).
@@ -138,7 +138,7 @@ class DeepGramRecognizer(BaseRecognizer):
 
         # Doesnt response
         if response == None:
-            return RecognizerResponse(status_code = status_code)
+            return TranscriptionResponse(status_code = status_code)
 
         # Get info
         info = response["results"]["channels"][0]["alternatives"][0]
@@ -149,17 +149,17 @@ class DeepGramRecognizer(BaseRecognizer):
                                                 in_milliseconds = in_milliseconds)
 
         # Return
-        return RecognizerResponse(status_code = status_code,
-                                  transcription = str(info["transcript"]),
-                                  segments = segments)
+        return TranscriptionResponse(status_code = status_code,
+                                     transcription = str(info["transcript"]),
+                                     segments = segments)
 
     async def atranscribe(self,
                           audio: Union[str, BinaryIO, bytes],
                           timeout: Optional[float] = None,
                           connect_time: float = 5,
                           in_milliseconds: bool = True,
-                          detect_words: bool = True,
-                          **kwargs) -> RecognizerResponse:
+                          detect_words: bool = False,
+                          **kwargs) -> TranscriptionResponse:
         """
         Asynchronous function to return transcription from audio
         :param audio: Audio object ( Accepted types: str (file path), bytes and BinaryIO).
@@ -234,7 +234,7 @@ class DeepGramRecognizer(BaseRecognizer):
 
         # Doesnt response
         if response == None:
-            return RecognizerResponse(status_code=status_code)
+            return TranscriptionResponse(status_code = status_code)
 
         # Get info
         info = response["results"]["channels"][0]["alternatives"][0]
@@ -246,7 +246,7 @@ class DeepGramRecognizer(BaseRecognizer):
                                                 in_milliseconds = in_milliseconds)
 
         # Return
-        return RecognizerResponse(status_code = status_code,
-                                  transcription = str(info["transcript"]),
-                                  segments = segments)
+        return TranscriptionResponse(status_code = status_code,
+                                     transcription = str(info["transcript"]),
+                                     segments = segments)
 

@@ -9,7 +9,7 @@ class Word(BaseModel):
     end :Union[int,float]
     confidence :float
 
-class RecognizerResponse(BaseModel):
+class TranscriptionResponse(BaseModel):
     status_code :StatusCode = StatusCode.SUCCESS
     transcription :Union[str,None] = None
     segments :Union[List[Word],None] = None
