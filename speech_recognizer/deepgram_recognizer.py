@@ -5,7 +5,7 @@ from deepgram import (DeepgramClient,
                       PrerecordedOptions,
                       FileSource,
                       BufferSource)
-import httpx, aiofiles
+import httpx, aiofiles, os
 
 class DeepGramRecognizer(BaseRecognizer):
     def __init__(self,
@@ -102,7 +102,7 @@ class DeepGramRecognizer(BaseRecognizer):
 
             case AudioType.LOCAL_FILE:
                 # Local file case
-                if not self._is_existed_path(audio):
+                if not os.path.exists(audio):
                     raise FileNotFoundError(f"Local path: {audio} not found")
 
                 try:
@@ -142,6 +142,7 @@ class DeepGramRecognizer(BaseRecognizer):
 
         # Get info
         info = response["results"]["channels"][0]["alternatives"][0]
+
         segments = None
         # When detect segment
         if detect_words:
@@ -151,6 +152,7 @@ class DeepGramRecognizer(BaseRecognizer):
         # Return
         return TranscriptionResponse(status_code = status_code,
                                      transcription = str(info["transcript"]),
+                                     confidence = info["confidence"],
                                      segments = segments)
 
     async def atranscribe(self,
@@ -172,7 +174,7 @@ class DeepGramRecognizer(BaseRecognizer):
         """
         # Define timeout
         if timeout != None:
-            timeout = httpx.Timeout(timeout=timeout, connect=connect_time)
+            timeout = httpx.Timeout(timeout = timeout, connect = connect_time)
 
         # Get AudioType from audio input
         audio_type = self.get_audio_type(audio)
@@ -196,7 +198,7 @@ class DeepGramRecognizer(BaseRecognizer):
 
             case AudioType.LOCAL_FILE:
                 # Local file case
-                if not self._is_existed_path(audio):
+                if not os.path.exists(audio):
                     raise FileNotFoundError(f"Local path: {audio} not found")
 
                 try:
@@ -248,5 +250,6 @@ class DeepGramRecognizer(BaseRecognizer):
         # Return
         return TranscriptionResponse(status_code = status_code,
                                      transcription = str(info["transcript"]),
+                                     confidence = info["confidence"],
                                      segments = segments)
 

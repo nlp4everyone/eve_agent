@@ -12,6 +12,7 @@ class Word(BaseModel):
 class TranscriptionResponse(BaseModel):
     status_code :StatusCode = StatusCode.SUCCESS
     transcription :Union[str,None] = None
+    confidence: Union[float,None] = None
     segments :Union[List[Word],None] = None
     description :str = None
 
@@ -38,19 +39,6 @@ class BaseRecognizer():
         assert isinstance(time, int), "Time must be in int type"
         # Return
         return float(time/1000)
-
-    @staticmethod
-    def _is_link(path :str) -> bool:
-        # Strip the path
-        path = path.strip()
-        # Lowercase
-        path = path.lower()
-        # Check condition
-        return True if path.startswith("https:") or path.startswith("http:") else False
-
-    @staticmethod
-    def _is_existed_path(path) -> bool:
-        return True if os.path.exists(path) else False
 
     def get_audio_type(self,
                         audio :Union[str, bytes, BinaryIO]):
