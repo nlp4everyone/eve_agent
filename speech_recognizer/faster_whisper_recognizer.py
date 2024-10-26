@@ -96,11 +96,13 @@ class FasterWhisperRecognizer(BaseRecognizer):
     def transcribe(self,
                    audio :Union[str, bytes, BinaryIO],
                    in_milliseconds: bool = True,
+                   detect_words: bool = False,
                    **kwargs) -> TranscriptionResponse:
         """
         Synchronous function to return transcription from audio
         :param audio: Path to the input file (or a file-like object), or the audio waveform.
         :param in_milliseconds: Whether return time under second or millisecond type
+        :param detect_words: Enable return list of segmented words.
         :return: TranscriptionResponse
         """
         # Check file path
@@ -110,10 +112,23 @@ class FasterWhisperRecognizer(BaseRecognizer):
             return TranscriptionResponse(status_code = StatusCode.FAILED,
                                          description = description)
 
-        # Return segmentation and info
+        if not detect_words:
+            # Get segments
+            segments, _ = self.__model.transcribe(audio = audio,
+                                                  word_timestamps = False,
+                                                  without_timestamps = True,
+                                                  **kwargs)
+            # Define transcription
+            transcription = "".join([word.text for word in segments])
+            # Return
+            return TranscriptionResponse(status_code = StatusCode.SUCCESS,
+                                         text = transcription)
+
+        # Return only transcription
         segments, _ = self.__model.transcribe(audio = audio,
-                                              word_timestamps = True)
-        # Get list of words with timestamp
+                                              word_timestamps = True,
+                                              **kwargs)
+        # Get segments
         words_timestamp = self.__contruct_segments(segments = segments,
                                                    in_milliseconds = in_milliseconds)
 
