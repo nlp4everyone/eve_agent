@@ -55,7 +55,7 @@ class DeepGramRecognizer(BaseRecognizer):
             word = segment['punctuated_word']
             confidence = segment['confidence']
             # Append to output
-            output.append(Word(start=start, end=end, text=word, confidence=confidence))
+            output.append(Word(start = start, end = end, text = word, confidence = confidence))
         # Return segments
         return output
 
@@ -78,10 +78,11 @@ class DeepGramRecognizer(BaseRecognizer):
         """
         # Define timeout
         if timeout != None:
-            timeout = httpx.Timeout(timeout=timeout, connect=connect_time)
+            timeout = httpx.Timeout(timeout = timeout,
+                                    connect = connect_time)
 
         # Get AudioType from audio input
-        audio_type = self.get_audio_type(audio)
+        audio_type = self._get_audio_type(audio)
 
         # Default response
         response = None
@@ -151,7 +152,7 @@ class DeepGramRecognizer(BaseRecognizer):
 
         # Return
         return TranscriptionResponse(status_code = status_code,
-                                     transcription = str(info["transcript"]),
+                                     text = str(info["transcript"]),
                                      confidence = info["confidence"],
                                      segments = segments)
 
@@ -177,7 +178,7 @@ class DeepGramRecognizer(BaseRecognizer):
             timeout = httpx.Timeout(timeout = timeout, connect = connect_time)
 
         # Get AudioType from audio input
-        audio_type = self.get_audio_type(audio)
+        audio_type = self._get_audio_type(audio)
 
         # Default response
         response = None
@@ -249,7 +250,7 @@ class DeepGramRecognizer(BaseRecognizer):
 
         # Return
         return TranscriptionResponse(status_code = status_code,
-                                     transcription = str(info["transcript"]),
+                                     text = str(info["transcript"]),
                                      confidence = info["confidence"],
                                      segments = segments)
 

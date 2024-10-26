@@ -36,7 +36,6 @@ class AssemblyRecognizer(AdvancedRecognizer):
         :param in_milliseconds: Whether return time under second or millisecond type
         :return: List[Word]
         """
-        print(type(segments[0]))
         output = []
         for word in segments:
             # Specify second or millisecond format
@@ -59,7 +58,7 @@ class AssemblyRecognizer(AdvancedRecognizer):
         :return: str
         """
         # Get AudioType from audio input
-        audio_type = self.get_audio_type(audio)
+        audio_type = self._get_audio_type(audio)
 
         # When local file not found
         if audio_type == AudioType.LOCAL_FILE and not os.path.exists(audio):
@@ -81,7 +80,7 @@ class AssemblyRecognizer(AdvancedRecognizer):
 
         # Return
         return TranscriptionResponse(status_code = status_code,
-                                     transcription = transcription.text,
+                                     text = transcription.text,
                                      confidence = transcription.confidence,
                                      segments = segments)
 

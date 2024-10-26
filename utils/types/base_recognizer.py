@@ -11,7 +11,7 @@ class Word(BaseModel):
 
 class TranscriptionResponse(BaseModel):
     status_code :StatusCode = StatusCode.SUCCESS
-    transcription :Union[str,None] = None
+    text :Union[str,None] = None
     confidence: Union[float,None] = None
     segments :Union[List[Word],None] = None
     description :str = None
@@ -40,7 +40,7 @@ class BaseRecognizer():
         # Return
         return float(time/1000)
 
-    def get_audio_type(self,
+    def _get_audio_type(self,
                         audio :Union[str, bytes, BinaryIO]):
         """
         Return Audio Type of input path

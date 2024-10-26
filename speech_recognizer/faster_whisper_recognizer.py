@@ -1,5 +1,5 @@
-from ..utils.types import AdvancedRecognizer, Word
-from typing import Literal, List, Tuple, Union, Optional
+from ..utils.types import AdvancedRecognizer, Word, TranscriptionResponse, BaseRecognizer, StatusCode
+from typing import Literal, List, Union, Optional, BinaryIO
 from faster_whisper.transcribe import TranscriptionInfo
 from faster_whisper import WhisperModel
 from strenum import StrEnum
@@ -15,7 +15,7 @@ class QuantizeType(StrEnum):
     BFLOAT16 = "bfloat16",
     FLOAT32 = "float32",
 
-class FasterWhisperRecognizer(AdvancedRecognizer):
+class FasterWhisperRecognizer(BaseRecognizer):
     def __init__(self,
                  model_name :str = "small.en",
                  device :Literal["cuda","cpu","auto"] = "auto",
@@ -28,7 +28,12 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
                  **kwargs):
         """
         This class handles interaction with phoneme in word element, powered by FasterWhisper model:
-        :param model_name: Model name extract word and timestamp from audio. Default is (small.en)
+        model_size_or_path: Size of the model to use (tiny, tiny.en, base, base.en,
+            small, small.en, distil-small.en, medium, medium.en, distil-medium.en, large-v1,
+            large-v2, large-v3, large, distil-large-v2 or distil-large-v3), a path to a
+            converted model directory, or a CTranslate2-converted Whisper model ID from the HF Hub.
+            When a size or a model ID is configured, the converted model is downloaded
+            from the Hugging Face Hub.
         :param device: Specify whether GPU will be used or not. Default is auto.
         :param device_index:  Device ID to use. The model can also be loaded on multiple GPUs by passing a list of IDs (e. g. [0, 1, 2, 3])
         :param compute_type: Type to use for computation. See https://opennmt.net/ CTranslate2/ quantization. html.
@@ -45,70 +50,23 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
                                     compute_type = compute_type,
                                     cpu_threads = cpu_threads,
                                     num_workers = num_workers,
-                                    download_root = download_root)
+                                    download_root = download_root,
+                                    **kwargs)
         # Used batch
         # To use this feature, you must install FasterWhisper from scratch (pip install --force-reinstall "faster-whisper @ https://github.com/SYSTRAN/faster-whisper/archive/refs/heads/master.tar.gz")
         if use_batch:
             from faster_whisper import BatchedInferencePipeline
             self.__model = BatchedInferencePipeline(model=self.__model)
 
-    def _detect_segments(self,
-                        audio_file :str,
-                        enable_timestamp :bool = True,
-                        **kwarg) -> Tuple:
+    def __contruct_segments(self,
+                            segments: List,
+                            in_milliseconds: bool = True) -> List[Word]:
         """
-        Function for getting information( segmentation, info) about audio:
-        :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
-        :param enable_timestamp: Extract word-level timestamps using the cross-attention pattern and dynamic time warping,
-        and include the timestamps for each word in each segment.
-        :return: Tuple
-        """
-        # Check file path
-        if not self._is_existed_path(audio_file): raise FileNotFoundError
-        # Return segmentation and info
-        segments, info = self.__model.transcribe(audio = audio_file, word_timestamps = enable_timestamp)
-        return segments, info
-
-    def get_transcription_info(self,
-                               audio_file :str) -> TranscriptionInfo:
-        """
-        Return information about transcription
-        :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
-        :return: TranscriptionInfo
-        """
-        # Get pieces
-        _, transcription_info = self._detect_segments(audio_file)
-        return transcription_info
-
-    def transcribe(self,
-                   audio_file :str,
-                   **kwargs) -> str:
-        """
-        Synchronous function to return transcription from audio
-        :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
-        :return: str
-        """
-        # Get pieces
-        segments, _ = self._detect_segments(audio_file)
-
-        # Iterate over segments
-        list_segments = [segment.text for segment in segments]
-        return "".join(list_segments)
-
-
-    def segment(self,
-                audio_file :str,
-                in_milliseconds :bool = True,
-                **kwargs) -> List[Word]:
-        """
-        Returning a list of dictionary information for words appeared in audio:
-        :param audio_file: Path to the input file (or a file-like object), or the audio waveform.
-        :param in_milliseconds: Specify time under second or millisecond format.
+        Recontruct segments under standard format
+        :param segments: A response from Deepgram Speech to Text
+        :param in_milliseconds: Whether return time under second or millisecond type
         :return: List[Word]
         """
-        # Get pieces
-        segments, _ = self._detect_segments(audio_file)
-        # Return list of words under millisecond type
         output = []
         for segment in segments:
             for word in segment.words:
@@ -116,8 +74,56 @@ class FasterWhisperRecognizer(AdvancedRecognizer):
                 start = self._convert_to_millisecond(word.start) if in_milliseconds else word.start
                 end = self._convert_to_millisecond(word.end) if in_milliseconds else word.end
                 # Append to output
-                output.append(Word(text = word.word, start = start, end = end, confidence = word.probability))
+                output.append(Word(text=word.word, start=start, end=end, confidence=word.probability))
         return output
+
+    def get_transcription_info(self,
+                               audio :Union[str, bytes, BinaryIO]) -> TranscriptionInfo:
+        """
+        Return information about transcription
+        :param audio: Path to the input file (or a file-like object), or the audio waveform.
+        :return: TranscriptionInfo
+        """
+        # File not found
+        if isinstance(audio, str) and not os.path.exists(audio):
+            raise FileNotFoundError(f"File {audio} not found")
+
+        # Return segmentation and info
+        _, information = self.__model.transcribe(audio = audio,
+                                                 word_timestamps = False)
+        return information
+
+    def transcribe(self,
+                   audio :Union[str, bytes, BinaryIO],
+                   in_milliseconds: bool = True,
+                   **kwargs) -> TranscriptionResponse:
+        """
+        Synchronous function to return transcription from audio
+        :param audio: Path to the input file (or a file-like object), or the audio waveform.
+        :param in_milliseconds: Whether return time under second or millisecond type
+        :return: TranscriptionResponse
+        """
+        # Check file path
+        if isinstance(audio, str) and not os.path.exists(audio):
+            description = f"File {audio} not found"
+            # Return value
+            return TranscriptionResponse(status_code = StatusCode.FAILED,
+                                         description = description)
+
+        # Return segmentation and info
+        segments, _ = self.__model.transcribe(audio = audio,
+                                              word_timestamps = True)
+        # Get list of words with timestamp
+        words_timestamp = self.__contruct_segments(segments = segments,
+                                                   in_milliseconds = in_milliseconds)
+
+        # Define transcription
+        transcription = "".join([word.text for word in words_timestamp])
+
+        # Return value
+        return TranscriptionResponse(status_code = StatusCode.SUCCESS,
+                                     text = transcription,
+                                     segments = words_timestamp)
 
 
 
